@@ -129,6 +129,23 @@
             text-align: center;
             font-size: 1.5rem;
         }
+
+        /* 強化急救包點擊狀態控制 */
+        .aid-kit-enabled {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        .aid-kit-disabled {
+            opacity: 0.2 !important;
+            pointer-events: none !important;
+        }
+        .first-aid {
+            display: inline-block;
+            cursor: pointer;
+            padding: 8px; 
+            position: relative;
+            z-index: 150;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -141,7 +158,7 @@
                 <div class="flex items-center flex-wrap gap-4">
                     <h1 class="text-2xl md:text-3xl font-bold text-pink-500 text-balance">✨ 作業系統課後總複習</h1>
                     <div id="status-indicators" class="flex gap-2 ml-2">
-                        <!-- 燈號動態生成 -->
+                        <!-- 燈號由 JS 動態生成 -->
                     </div>
                 </div>
                 <p class="text-gray-400 text-sm mt-1">作答進度: <span id="progress-text" class="font-bold text-indigo-400"></span></p>
@@ -156,15 +173,16 @@
         </main>
 
         <!-- 下方導覽列 -->
-        <footer class="p-6 md:p-8 bg-gray-50 flex flex-wrap gap-4 justify-between items-center">
+        <footer class="p-6 md:p-8 bg-gray-50 flex flex-wrap gap-4 justify-between items-center relative z-[200]">
             <button id="prev-btn" class="px-6 py-2 rounded-full border-2 border-pink-200 text-pink-400 font-bold hover:bg-pink-100 disabled:opacity-30 transition-all">
                 上一題
             </button>
             
             <div class="flex items-center gap-6">
-                <div id="aid-kit" class="flex gap-3 text-2xl border-r-2 border-gray-200 pr-6 mr-2">
-                    <span class="first-aid transition-opacity cursor-pointer hover:scale-110 active:scale-90" title="急救包">🚑</span>
-                    <span class="first-aid transition-opacity cursor-pointer hover:scale-110 active:scale-90" title="急救包">🚑</span>
+                <!-- 急救包區域 -->
+                <div id="aid-kit" class="flex gap-1 text-2xl border-r-2 border-gray-200 pr-2 mr-1 aid-kit-enabled transition-all duration-300">
+                    <span class="first-aid" title="急救包">🚑</span>
+                    <span class="first-aid" title="急救包">🚑</span>
                 </div>
 
                 <div class="flex gap-4">
@@ -179,7 +197,7 @@
         </footer>
 
         <!-- 自定義提醒彈窗 -->
-        <div id="modal-overlay" class="fixed inset-0 bg-black/40 z-[200] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div id="modal-overlay" class="fixed inset-0 bg-black/40 z-[300] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
             <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300" id="modal-content">
                 <div class="text-4xl mb-4 text-center">💡</div>
                 <h3 id="modal-title" class="text-xl font-bold text-gray-800 text-center mb-2">溫馨提醒</h3>
@@ -196,7 +214,7 @@
         </div>
 
         <!-- 密碼輸入彈窗 -->
-        <div id="pw-modal-overlay" class="fixed inset-0 bg-black/60 z-[300] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div id="pw-modal-overlay" class="fixed inset-0 bg-black/60 z-[400] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
             <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300" id="pw-modal-content">
                 <div class="text-4xl mb-4 text-center">🔒</div>
                 <h3 class="text-xl font-bold text-gray-800 text-center mb-4">請輸入進入密碼</h3>
@@ -213,13 +231,12 @@
         </div>
 
         <!-- 結算頁面 Overlay -->
-        <div id="result-overlay" class="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center p-6 md:p-10 hidden fade-in overflow-y-auto">
+        <div id="result-overlay" class="absolute inset-0 bg-white z-[500] flex flex-col items-center justify-center p-6 md:p-10 hidden fade-in overflow-y-auto">
             <div class="border-4 border-pink-200 rounded-3xl p-8 max-w-3xl w-full bg-white shadow-xl my-8">
                 <h2 class="text-3xl font-bold text-pink-500 mb-4 text-center text-balance">📝 作答結果</h2>
                 
                 <div class="text-center mb-4"><span class="text-sm font-bold text-gray-400">【 實作畫面複查 】</span></div>
                 <div id="summary-screenshots" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8 text-center">
-                    <!-- 縮圖 JS 動態注入 -->
                 </div>
 
                 <div id="final-stats" class="space-y-4 mb-8"></div>
@@ -230,18 +247,17 @@
                 </div>
 
                 <div class="flex justify-center">
-                    <button onclick="location.reload()" class="px-12 py-4 bg-pink-500 text-white rounded-full text-xl font-bold shadow-xl hover:bg-pink-600 transition-all active:scale-95">
-                        重新開始測試
+                    <button onclick="restartQuiz()" class="px-12 py-4 bg-pink-500 text-white rounded-full text-xl font-bold shadow-xl hover:bg-pink-600 transition-all active:scale-95">
+                        重新作答測驗題
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full bg-gray-800 text-white font-bold opacity-0 transition-opacity pointer-events-none z-[100] text-xl shadow-lg"></div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full bg-gray-800 text-white font-bold opacity-0 transition-opacity pointer-events-none z-[600] text-xl shadow-lg"></div>
 
     <script>
-        // 全域變數定義與初始化
         const quizData = [
             {
                 type: 'image_upload',
@@ -301,12 +317,12 @@
 
         const inspirationalQuotes = [
             { en: "Genius is one percent inspiration and ninety-nine percent perspiration.", zh: "天才就是百分之一的靈感加上百分之九十九的汗水。 — 愛迪生" },
-            { en: "Success is not final, failure is not fatal: it is the courage to continue that counts.", zh: "成功不是終點，失敗也不是終結：唯有勇敢前行的勇氣才是最重要的。 — 邱吉爾" },
+            { en: "Success is not final, failure is not fatal.", zh: "成功不是終點，失敗也不是終結：唯有勇敢前行的勇氣才是最重要的。 — 邱吉爾" },
             { en: "Believe you can and you're halfway there.", zh: "相信你自己能做到，你就已經成功了一半。 — 羅斯福" },
             { en: "Stay hungry, stay foolish.", zh: "求知若渴，虛心若愚。 — 賈伯斯" },
-            { en: "The best way to predict the future is to create it.", zh: "預測未來的最佳方式就是去創造它。 — 彼得·杜拉克" },
-            { en: "The power of imagination makes us infinite.", zh: "想像的力量讓我們變得無限。 — 約翰·繆爾" }
-            // 這裡簡化顯示，邏輯會從 40 句庫中隨機取（已內建在隨機邏輯中）
+            { en: "Imagination is more important than knowledge.", zh: "想像力比知識更重要。 — 愛因斯坦" },
+            { en: "Action is the foundational key to all success.", zh: "行動是所有成功的基石. — 畢卡索" },
+            { en: "The best way to predict the future is to create it.", zh: "預測未來的最佳方式就是去創造它。 — 彼得·杜拉克" }
         ];
 
         const SECRET_PASS = "3939889";
@@ -315,7 +331,7 @@
         let quizCheckedStatus = {}; 
         let quizPassedStatus = {}; 
         let firstAidCount = 2; 
-        let totalAttempts = 0; // 全域宣告
+        let totalAttempts = 0; 
         let startTime = Date.now();
         let timerInterval = null;
         let isTimerStarted = false; 
@@ -335,7 +351,16 @@
             document.getElementById('next-btn').onclick = () => navigate(1);
             document.getElementById('prev-btn').onclick = () => navigate(-1);
             document.getElementById('check-btn').onclick = checkAnswer;
-            document.querySelectorAll('.first-aid').forEach((aid) => { aid.onclick = () => useFirstAid(aid); });
+            
+            // 重新綁定急救包點擊事件
+            const aidSpans = document.querySelectorAll('.first-aid');
+            aidSpans.forEach((span) => {
+                span.onclick = (e) => {
+                    e.stopPropagation();
+                    useFirstAid(span);
+                };
+            });
+
             document.getElementById('pw-confirm-btn').onclick = verifyPassword;
             document.getElementById('pw-input').onkeypress = (e) => { if(e.key === 'Enter') verifyPassword(); };
         }
@@ -356,11 +381,11 @@
         function showCustomModal(title, message, confirmText, onConfirm) {
             const overlay = document.getElementById('modal-overlay');
             const content = document.getElementById('modal-content');
-            const confirmBtn = document.getElementById('modal-confirm-btn');
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-message').innerText = message;
-            confirmBtn.innerText = confirmText;
-            confirmBtn.onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
+            const btn = document.getElementById('modal-confirm-btn');
+            btn.innerText = confirmText;
+            btn.onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
             overlay.classList.remove('hidden');
             setTimeout(() => { overlay.classList.remove('opacity-0'); content.classList.remove('scale-90'); }, 10);
         }
@@ -395,7 +420,7 @@
                 closePwModal(); 
                 if(window.pwCallback) {
                     window.pwCallback(); 
-                    startTimer(); // 通過密碼後計時
+                    startTimer(); 
                 }
             } else {
                 showToast("密碼錯誤，請重新輸入喔！", "error");
@@ -408,13 +433,25 @@
             const q = quizData[currentIdx];
             const progressEl = document.getElementById('progress-text');
             const nextBtn = document.getElementById('next-btn');
+            const aidKit = document.getElementById('aid-kit');
 
             if (progressEl) progressEl.innerText = `${currentIdx + 1} / ${quizData.length}`;
             document.getElementById('prev-btn').disabled = (currentIdx === 0);
             nextBtn.innerText = (currentIdx === quizData.length - 1) ? "查看結果" : "下一題";
             
-            // 第一題鎖定邏輯
             nextBtn.disabled = (currentIdx === 0 && !quizPassedStatus[0]);
+
+            // 指令：急救包在包含第一題在內的所有題目都應生效
+            aidKit.classList.remove('aid-kit-disabled');
+            aidKit.classList.add('aid-kit-enabled');
+            
+            // 確保所有未消耗的圖示重設可點擊屬性
+            document.querySelectorAll('.first-aid').forEach(span => {
+                if (span.style.opacity !== "0.2") {
+                    span.style.pointerEvents = "auto";
+                    span.style.cursor = "pointer";
+                }
+            });
 
             container.innerHTML = '';
             const wrapper = document.createElement('div');
@@ -432,7 +469,7 @@
 
         function renderImageUpload(q, wrapper) {
             const title = document.createElement('h3');
-            title.className = "text-2xl text-gray-700 font-bold mb-8 text-balance";
+            title.className = "text-2xl text-gray-700 font-bold mb-8 text-balance text-center";
             title.innerText = q.question;
             wrapper.appendChild(title);
             const grid = document.createElement('div');
@@ -440,34 +477,17 @@
             q.labels.forEach((label, i) => {
                 const itemBox = document.createElement('div');
                 itemBox.className = "flex flex-col gap-2";
-                
-                // 可愛標籤
                 const tag = document.createElement('div');
                 tag.className = "self-center px-4 py-1 bg-pink-400 text-white rounded-full text-sm font-bold shadow-sm mb-1";
                 tag.innerText = `✨ ${label}`;
-
                 const box = document.createElement('div');
                 box.className = "upload-box shadow-sm";
                 box.id = `upload-${i}`;
                 box.contentEditable = "true";
                 box.innerHTML = `<div class="flex flex-col items-center p-4"><span class="text-4xl mb-2 text-gray-300">📸</span><span class="text-xs text-gray-400">點擊上傳或右鍵貼上</span></div>`;
-                
-                box.onclick = (e) => { 
-                    if (e.target === box || box.contains(e.target)) { 
-                        const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; 
-                        input.onchange = (ev) => handleImage(ev.target.files[0], box, i); input.click(); 
-                    } 
-                };
+                box.onclick = (e) => { if (e.target === box || box.contains(e.target)) { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = (ev) => handleImage(ev.target.files[0], box, i); input.click(); } };
                 box.onkeydown = (e) => { if (!(e.ctrlKey && e.key === 'v') && !(e.metaKey && e.key === 'v')) e.preventDefault(); };
-                box.onpaste = (e) => { 
-                    e.preventDefault(); 
-                    const items = (e.clipboardData || e.originalEvent.clipboardData).items; 
-                    for (let index in items) { 
-                        const item = items[index]; 
-                        if (item.kind === 'file' && item.type.indexOf("image") !== -1) handleImage(item.getAsFile(), box, i); 
-                    } 
-                };
-                
+                box.onpaste = (e) => { e.preventDefault(); const items = (e.clipboardData || e.originalEvent.clipboardData).items; for (let index in items) { const item = items[index]; if (item.kind === 'file' && item.type.indexOf("image") !== -1) handleImage(item.getAsFile(), box, i); } };
                 itemBox.appendChild(tag);
                 itemBox.appendChild(box);
                 grid.appendChild(itemBox);
@@ -617,9 +637,7 @@
 
         function navigate(dir) {
             saveCurrentQuestionState();
-            // 第一題前進第二題需要密碼
             if (currentIdx === 0 && dir === 1) { showPwModal(() => performNavigation(dir)); return; }
-            
             if (dir > 0 && !quizCheckedStatus[currentIdx]) {
                 if (currentIdx + dir < quizData.length) { 
                     showCustomModal("溫馨提醒", "待會要記得回來按下檢查答案喔！", "前往下一題", () => performNavigation(dir)); 
@@ -639,7 +657,7 @@
 
         function checkAnswer() {
             quizCheckedStatus[currentIdx] = true; 
-            totalAttempts++; // 增加檢查次數
+            totalAttempts++; 
             const q = quizData[currentIdx];
             let errors = 0; let incomplete = false;
             
@@ -649,14 +667,9 @@
                     const img = box.querySelector('img');
                     if (!img) incomplete = true; else imgs.push(img.src);
                 });
-                
-                // 防重複檢查
                 if (!incomplete) {
                     const uniqueImgs = new Set(imgs);
-                    if (uniqueImgs.size < imgs.length) {
-                        showToast("發現重複的截圖內容！請貼上正確且不同的操作畫面喔。", "error");
-                        return;
-                    }
+                    if (uniqueImgs.size < imgs.length) { showToast("發現重複截圖！請更換內容喔。", "error"); return; }
                 }
             } else {
                 document.querySelectorAll('.slot').forEach(slot => { const item = slot.querySelector('.macaron-btn'); if (!item) incomplete = true; if (item && item.dataset.value !== slot.dataset.answer) errors++; });
@@ -676,16 +689,50 @@
         }
 
         function useFirstAid(aidElement) {
+            // 指令：第一題應生效
             if (firstAidCount <= 0 || aidElement.style.opacity === "0.2") return;
-            aidElement.style.opacity = "0.2"; aidElement.classList.add('pointer-events-none');
+
+            // 實作題使用急救包的視覺提示（僅展示效果，因實作題無標準答案配對）
+            if (currentIdx === 0) {
+                showToast("✨ 急救包已啟動！請確認四張截圖皆已正確貼上。", "success");
+            }
+
+            aidElement.style.opacity = "0.2"; 
+            aidElement.style.pointerEvents = "none";
             firstAidCount--;
-            document.querySelectorAll('.slot').forEach(slot => { const item = slot.querySelector('.macaron-btn'); if (item?.dataset.value === slot.dataset.answer) slot.classList.add('correct-hint'); else slot.classList.add('error-hint'); setTimeout(() => slot.classList.remove('correct-hint', 'error-hint'), 2000); });
+            
+            document.querySelectorAll('.slot').forEach(slot => { 
+                const item = slot.querySelector('.macaron-btn'); 
+                if (item?.dataset.value === slot.dataset.answer) slot.classList.add('correct-hint'); 
+                else slot.classList.add('error-hint'); 
+                setTimeout(() => slot.classList.remove('correct-hint', 'error-hint'), 2000); 
+            });
         }
 
         function showToast(msg, type) {
             const toast = document.getElementById('toast'); toast.innerText = msg;
-            toast.className = `fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-white font-bold transition-all z-[100] text-xl shadow-lg ${type === 'success' ? 'bg-green-500' : 'bg-gray-800'}`;
+            toast.className = `fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-white font-bold transition-all z-[600] text-xl shadow-lg ${type === 'success' ? 'bg-green-500' : 'bg-gray-800'}`;
             toast.style.opacity = "1"; setTimeout(() => toast.style.opacity = "0", 3000);
+        }
+
+        function restartQuiz() {
+            document.getElementById('result-overlay').classList.add('hidden');
+            for (let i = 1; i < quizData.length; i++) { delete userStates[i]; delete quizCheckedStatus[i]; delete quizPassedStatus[i]; }
+            
+            firstAidCount = 2;
+            const aidKit = document.getElementById('aid-kit');
+            aidKit.classList.remove('aid-kit-disabled');
+            aidKit.classList.add('aid-kit-enabled');
+            document.querySelectorAll('.first-aid').forEach(aid => { aid.style.opacity = "1"; aid.style.pointerEvents = "auto"; aid.style.cursor = "pointer"; });
+
+            totalAttempts = 0; isTimerStarted = false;
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('timer').innerText = "00:00";
+            document.querySelectorAll('.progress-circle').forEach(circle => { if (parseInt(circle.dataset.idx) > 0) circle.classList.remove('passed'); });
+
+            currentIdx = 1; 
+            renderQuestion();
+            startTimer(); 
         }
 
         function showFinalSummary() {
@@ -693,35 +740,19 @@
             saveCurrentQuestionState();
             const screenshotArea = document.getElementById('summary-screenshots');
             const timerText = document.getElementById('timer').innerText;
-
             screenshotArea.innerHTML = '';
             const imgState = userStates[0];
             if (imgState && imgState.values) {
                 Object.keys(imgState.values).forEach(idx => {
                     const label = quizData[0].labels[idx];
-                    screenshotArea.innerHTML += `
-                        <div class="flex flex-col items-center">
-                            <span class="text-xs font-bold text-gray-500 mb-1">${label}</span>
-                            <div class="border rounded-lg overflow-hidden bg-gray-5 aspect-square shadow-sm w-full">
-                                <img src="${imgState.values[idx].val}" class="w-full h-full object-cover">
-                            </div>
-                        </div>`;
+                    screenshotArea.innerHTML += `<div class="flex flex-col items-center"><span class="text-xs font-bold text-gray-500 mb-1">${label}</span><div class="border rounded-lg overflow-hidden bg-gray-5 aspect-square shadow-sm w-full"><img src="${imgState.values[idx].val}" class="w-full h-full object-cover"></div></div>`;
                 });
             }
-
             let correctCount = 0; quizData.forEach((_, idx) => { if (quizPassedStatus[idx]) correctCount++; });
-            let feedback = correctCount === quizData.length ? "🌟 簡直是天才！" : "👍 表現優異！";
             const randomQuote = inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)];
             document.getElementById('quote-zh').innerText = randomQuote.zh; document.getElementById('quote-en').innerText = randomQuote.en;
-
             const stats = document.getElementById('final-stats');
-            stats.innerHTML = `
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-pink-50 p-6 rounded-2xl text-center border border-pink-100 shadow-sm"><p class="text-lg text-pink-400 font-bold uppercase tracking-tight">總題數</p><p class="text-4xl font-black text-pink-600">${quizData.length}</p></div>
-                    <div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100 shadow-sm"><p class="text-lg text-green-400 font-bold uppercase tracking-tight">答對題數</p><p class="text-4xl font-black text-green-600">${correctCount}</p></div>
-                </div>
-                <div class="text-center p-6 bg-white/50 rounded-2xl"><p class="text-2xl font-bold text-gray-700 mb-3 text-balance">${feedback}</p><p class="text-lg text-gray-500">測驗總用時：<span class="text-indigo-500 font-bold">${timerText}</span> | 檢查次數：<span class="text-indigo-500 font-bold">${totalAttempts}</span></p></div>
-            `;
+            stats.innerHTML = `<div class="grid grid-cols-2 gap-6"><div class="bg-pink-50 p-6 rounded-2xl text-center border border-pink-100 shadow-sm"><p class="text-lg text-pink-400 font-bold uppercase tracking-tight">總題數</p><p class="text-4xl font-black text-pink-600">${quizData.length}</p></div><div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100 shadow-sm"><p class="text-lg text-green-400 font-bold uppercase tracking-tight">答對題數</p><p class="text-4xl font-black text-green-600">${correctCount}</p></div></div><div class="text-center p-6 bg-white/50 rounded-2xl"><p class="text-2xl font-bold text-gray-700 mb-3 text-balance">挑戰完成！</p><p class="text-lg text-gray-500">測驗總用時：<span class="text-indigo-500 font-bold">${timerText}</span> | 檢查次數：<span class="text-indigo-500 font-bold">${totalAttempts}</span></p></div>`;
             document.getElementById('result-overlay').classList.remove('hidden');
         }
     </script>
