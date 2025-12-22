@@ -61,20 +61,20 @@
         /* 圖片上傳框樣式 */
         .upload-box {
             aspect-ratio: 16 / 10;
-            border: 3px dashed #e5e7eb;
-            border-radius: 20px;
+            border: 2px dashed rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: #f9fafb;
+            background-color: white;
             cursor: pointer;
             transition: all 0.3s;
             overflow: hidden;
             position: relative;
             outline: none;
         }
-        .upload-box:hover, .upload-box:focus { border-color: var(--macaron-pink); background-color: #fff1f2; }
+        .upload-box:hover, .upload-box:focus { border-color: var(--macaron-pink); background-color: #fff9fa; }
         .upload-box img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
         .upload-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; text-align: center; font-size: 0.8rem; padding: 4px; pointer-events: none; }
 
@@ -129,23 +129,6 @@
             text-align: center;
             font-size: 1.5rem;
         }
-
-        /* 強化急救包點擊狀態控制 */
-        .aid-kit-enabled {
-            opacity: 1 !important;
-            pointer-events: auto !important;
-        }
-        .aid-kit-disabled {
-            opacity: 0.2 !important;
-            pointer-events: none !important;
-        }
-        .first-aid {
-            display: inline-block;
-            cursor: pointer;
-            padding: 8px; 
-            position: relative;
-            z-index: 150;
-        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -158,7 +141,7 @@
                 <div class="flex items-center flex-wrap gap-4">
                     <h1 class="text-2xl md:text-3xl font-bold text-pink-500 text-balance">✨ 作業系統課後總複習</h1>
                     <div id="status-indicators" class="flex gap-2 ml-2">
-                        <!-- 燈號由 JS 動態生成 -->
+                        <!-- 燈號 JS 動態生成 -->
                     </div>
                 </div>
                 <p class="text-gray-400 text-sm mt-1">作答進度: <span id="progress-text" class="font-bold text-indigo-400"></span></p>
@@ -169,7 +152,7 @@
 
         <!-- 主內容區 -->
         <main id="question-container" class="flex-grow p-6 md:p-10 overflow-y-auto">
-            <!-- 題目 JS 注入 -->
+            <!-- 題目由 JS 注入 -->
         </main>
 
         <!-- 下方導覽列 -->
@@ -178,21 +161,16 @@
                 上一題
             </button>
             
-            <div class="flex items-center gap-6">
-                <!-- 急救包區域 -->
-                <div id="aid-kit" class="flex gap-1 text-2xl border-r-2 border-gray-200 pr-2 mr-1 aid-kit-enabled transition-all duration-300">
-                    <span class="first-aid" title="急救包">🚑</span>
-                    <span class="first-aid" title="急救包">🚑</span>
-                </div>
-
-                <div class="flex gap-4">
-                    <button id="check-btn" class="px-8 py-3 bg-pink-500 text-white rounded-full font-bold shadow-lg shadow-pink-200 hover:bg-pink-600 transition-all active:scale-95">
-                        檢查答案
-                    </button>
-                    <button id="next-btn" class="px-6 py-2 rounded-full bg-indigo-400 text-white font-bold hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-100 disabled:bg-gray-300 disabled:shadow-none disabled:cursor-not-allowed">
-                        下一題
-                    </button>
-                </div>
+            <div class="flex items-center gap-4">
+                <button id="skip-btn" class="px-8 py-3 bg-emerald-400 text-white rounded-full font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-500 transition-all active:scale-95 hidden">
+                    略過
+                </button>
+                <button id="check-btn" class="px-8 py-3 bg-pink-500 text-white rounded-full font-bold shadow-lg shadow-pink-200 hover:bg-pink-600 transition-all active:scale-95">
+                    檢查答案
+                </button>
+                <button id="next-btn" class="px-6 py-2 rounded-full bg-indigo-400 text-white font-bold hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-100 disabled:bg-gray-300 disabled:shadow-none disabled:cursor-not-allowed">
+                    下一題
+                </button>
             </div>
         </footer>
 
@@ -261,7 +239,7 @@
         const quizData = [
             {
                 type: 'image_upload',
-                question: "請完成以下四項作業系統實作，並點擊方框上傳，或按右鍵/Ctrl+V 貼上截圖：",
+                question: "請完成以下四項作業系統實作，並於對應區塊上傳或貼上截圖：",
                 labels: ["磁碟最佳化", "移除程式", "自動更新Update", "開啟防火牆"]
             },
             {
@@ -321,6 +299,7 @@
             { en: "Believe you can and you're halfway there.", zh: "相信你自己能做到，你就已經成功了一半。 — 羅斯福" },
             { en: "Stay hungry, stay foolish.", zh: "求知若渴，虛心若愚。 — 賈伯斯" },
             { en: "Imagination is more important than knowledge.", zh: "想像力比知識更重要。 — 愛因斯坦" },
+            { en: "Everything has beauty, but not everyone sees it.", zh: "萬物皆有美，但並非每個人都能看見。 — 孔子" },
             { en: "Action is the foundational key to all success.", zh: "行動是所有成功的基石. — 畢卡索" },
             { en: "The best way to predict the future is to create it.", zh: "預測未來的最佳方式就是去創造它。 — 彼得·杜拉克" }
         ];
@@ -330,8 +309,8 @@
         let userStates = {};
         let quizCheckedStatus = {}; 
         let quizPassedStatus = {}; 
-        let firstAidCount = 2; 
         let totalAttempts = 0; 
+        let quizAttemptCount = 1; 
         let startTime = Date.now();
         let timerInterval = null;
         let isTimerStarted = false; 
@@ -351,16 +330,7 @@
             document.getElementById('next-btn').onclick = () => navigate(1);
             document.getElementById('prev-btn').onclick = () => navigate(-1);
             document.getElementById('check-btn').onclick = checkAnswer;
-            
-            // 重新綁定急救包點擊事件
-            const aidSpans = document.querySelectorAll('.first-aid');
-            aidSpans.forEach((span) => {
-                span.onclick = (e) => {
-                    e.stopPropagation();
-                    useFirstAid(span);
-                };
-            });
-
+            document.getElementById('skip-btn').onclick = skipFirstQuestion; 
             document.getElementById('pw-confirm-btn').onclick = verifyPassword;
             document.getElementById('pw-input').onkeypress = (e) => { if(e.key === 'Enter') verifyPassword(); };
         }
@@ -433,7 +403,7 @@
             const q = quizData[currentIdx];
             const progressEl = document.getElementById('progress-text');
             const nextBtn = document.getElementById('next-btn');
-            const aidKit = document.getElementById('aid-kit');
+            const skipBtn = document.getElementById('skip-btn');
 
             if (progressEl) progressEl.innerText = `${currentIdx + 1} / ${quizData.length}`;
             document.getElementById('prev-btn').disabled = (currentIdx === 0);
@@ -441,17 +411,11 @@
             
             nextBtn.disabled = (currentIdx === 0 && !quizPassedStatus[0]);
 
-            // 指令：急救包在包含第一題在內的所有題目都應生效
-            aidKit.classList.remove('aid-kit-disabled');
-            aidKit.classList.add('aid-kit-enabled');
-            
-            // 確保所有未消耗的圖示重設可點擊屬性
-            document.querySelectorAll('.first-aid').forEach(span => {
-                if (span.style.opacity !== "0.2") {
-                    span.style.pointerEvents = "auto";
-                    span.style.cursor = "pointer";
-                }
-            });
+            if (currentIdx === 0) {
+                skipBtn.classList.remove('hidden');
+            } else {
+                skipBtn.classList.add('hidden');
+            }
 
             container.innerHTML = '';
             const wrapper = document.createElement('div');
@@ -469,30 +433,46 @@
 
         function renderImageUpload(q, wrapper) {
             const title = document.createElement('h3');
-            title.className = "text-2xl text-gray-700 font-bold mb-8 text-balance text-center";
+            title.className = "text-3xl text-gray-700 font-bold mb-6 text-balance text-center";
             title.innerText = q.question;
             wrapper.appendChild(title);
+            
             const grid = document.createElement('div');
-            grid.className = "grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto pb-8";
+            grid.className = "grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto pb-6";
+            
+            const bgColors = ['bg-rose-50', 'bg-orange-50', 'bg-emerald-50', 'bg-indigo-50'];
+            const borderColors = ['border-rose-200', 'border-orange-200', 'border-emerald-200', 'border-indigo-200'];
+            const textColors = ['text-rose-500', 'text-orange-500', 'text-emerald-500', 'text-indigo-500'];
+
             q.labels.forEach((label, i) => {
                 const itemBox = document.createElement('div');
-                itemBox.className = "flex flex-col gap-2";
-                const tag = document.createElement('div');
-                tag.className = "self-center px-4 py-1 bg-pink-400 text-white rounded-full text-sm font-bold shadow-sm mb-1";
-                tag.innerText = `✨ ${label}`;
+                itemBox.className = `${bgColors[i]} ${borderColors[i]} border-2 pt-3 pb-5 px-6 rounded-[40px] flex flex-col gap-2 shadow-sm transition-all hover:shadow-md`;
+                
+                const labelTitle = document.createElement('div');
+                labelTitle.className = `${textColors[i]} text-2xl font-black text-center tracking-wide`;
+                labelTitle.innerText = label;
+
                 const box = document.createElement('div');
-                box.className = "upload-box shadow-sm";
+                box.className = "upload-box"; 
                 box.id = `upload-${i}`;
                 box.contentEditable = "true";
-                box.innerHTML = `<div class="flex flex-col items-center p-4"><span class="text-4xl mb-2 text-gray-300">📸</span><span class="text-xs text-gray-400">點擊上傳或右鍵貼上</span></div>`;
+                box.innerHTML = `<div class="flex flex-col items-center p-4"><span class="text-gray-400 font-bold">點擊上傳或右鍵貼上截圖</span></div>`;
+                
                 box.onclick = (e) => { if (e.target === box || box.contains(e.target)) { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = (ev) => handleImage(ev.target.files[0], box, i); input.click(); } };
                 box.onkeydown = (e) => { if (!(e.ctrlKey && e.key === 'v') && !(e.metaKey && e.key === 'v')) e.preventDefault(); };
                 box.onpaste = (e) => { e.preventDefault(); const items = (e.clipboardData || e.originalEvent.clipboardData).items; for (let index in items) { const item = items[index]; if (item.kind === 'file' && item.type.indexOf("image") !== -1) handleImage(item.getAsFile(), box, i); } };
-                itemBox.appendChild(tag);
+                
+                itemBox.appendChild(labelTitle);
                 itemBox.appendChild(box);
                 grid.appendChild(itemBox);
             });
             wrapper.appendChild(grid);
+        }
+
+        function skipFirstQuestion() {
+            currentIdx = 1;
+            renderQuestion();
+            startTimer(); 
         }
 
         function handleImage(file, box, index) {
@@ -543,22 +523,61 @@
             renderSourceArea(q.options, wrapper);
         }
 
+        /**
+         * 渲染列表匹配題 (第四、五、六題)
+         * 優化：縮減標題上下間距，且針對第四題強化應用/系統軟體色系分流
+         */
         function renderMatchingList(q, wrapper) {
-            const title = document.createElement('h3'); title.className = "text-2xl text-gray-700 font-bold mb-10 text-center text-balance";
-            title.innerText = q.question; wrapper.appendChild(title);
-            const list = document.createElement('div'); list.className = "grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto";
+            const title = document.createElement('h3'); 
+            title.className = "text-2xl text-gray-700 font-bold mb-10 text-center text-balance";
+            title.innerText = q.question; 
+            wrapper.appendChild(title);
+            
+            const list = document.createElement('div'); 
+            list.className = "grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto";
+            
+            // 隨機變動作答區位置
+            let displayItems = q.items.map((item, originalIdx) => ({ ...item, originalIdx }));
+            if (currentIdx >= 3 && currentIdx <= 5) {
+                displayItems.sort(() => Math.random() - 0.5);
+            }
+
             const itemColors = [];
-            q.items.forEach((item, idx) => {
+            displayItems.forEach((item, loopIdx) => {
                 const itemBox = document.createElement('div');
-                let colorIdx;
-                if (currentIdx === 3) { itemBox.className = `p-6 rounded-3xl border-2 border-white shadow-sm flex flex-col gap-5 transition-all depth-${idx}`; itemColors.push(`depth-${idx}`); } 
-                else if (currentIdx === 5) { const dist = [0, 2, 4, 5]; colorIdx = dist[idx]; itemBox.className = `p-6 rounded-3xl border-2 border-white shadow-sm flex flex-col gap-5 transition-all color-${colorIdx}`; itemColors.push(colorIdx); } 
-                else { colorIdx = idx % 7; itemBox.className = `p-6 rounded-3xl border-2 border-white shadow-sm flex flex-col gap-5 transition-all color-${colorIdx}`; itemColors.push(colorIdx); }
-                const label = document.createElement('div'); label.className = "text-2xl font-black tracking-wider text-center drop-shadow-sm text-balance";
-                label.innerText = item.label; itemBox.appendChild(label);
-                const slot = createSlot(idx, item.answer); slot.className += ` w-full rounded-2xl py-6 border-2 dashed text-3xl text-center text-gray-700 bg-white/90`;
-                itemBox.appendChild(slot); list.appendChild(itemBox);
+                let colorClass = "";
+                
+                // 指令：針對第四題 (currentIdx === 3) 實施色系分流
+                if (currentIdx === 3) {
+                    if (item.label.includes("應用軟體")) {
+                        // 應用軟體使用「暖色系」
+                        const warmColors = ["color-0", "color-1", "color-2"];
+                        colorClass = warmColors[loopIdx % warmColors.length];
+                    } else {
+                        // 系統軟體使用「冷色系」
+                        const coolColors = ["color-3", "color-4", "color-5", "color-6"];
+                        colorClass = coolColors[loopIdx % coolColors.length];
+                    }
+                } else {
+                    // 其餘題目使用隨機配色，但確保與題目內容綁定 (非固定位置)
+                    colorClass = `color-${(item.originalIdx + currentIdx) % 7}`;
+                }
+
+                // 指令：減少上下段落空間 (pt-3 pb-4) 與間隙 (gap-2)
+                itemBox.className = `${colorClass} p-6 pt-3 pb-4 rounded-3xl border-2 border-white shadow-sm flex flex-col gap-2 transition-all hover:scale-[1.02]`;
+                itemColors.push(colorClass.replace("color-", ""));
+
+                const label = document.createElement('div'); 
+                label.className = "text-2xl font-black tracking-wider text-center drop-shadow-sm text-balance";
+                label.innerText = item.label; 
+                itemBox.appendChild(label);
+
+                const slot = createSlot(item.originalIdx, item.answer); 
+                slot.className += ` w-full rounded-2xl py-6 border-2 dashed text-3xl text-center text-gray-700 bg-white/90`;
+                itemBox.appendChild(slot); 
+                list.appendChild(itemBox);
             });
+
             wrapper.appendChild(list);
             renderSourceArea(q.options, wrapper, itemColors);
         }
@@ -582,7 +601,7 @@
             const shuffled = [...options].sort(() => Math.random() - 0.5);
             let colorPool = [0, 1, 2, 3, 4, 5, 6].sort(() => Math.random() - 0.5);
             shuffled.forEach((opt, idx) => {
-                const currentPool = colorPool.filter(c => !excludeColors.includes(c));
+                const currentPool = colorPool.filter(c => !excludeColors.includes(String(c)));
                 const finalPool = currentPool.length > 0 ? currentPool : colorPool;
                 const colorIdx = finalPool[idx % finalPool.length];
                 sourceArea.appendChild(createDragElement(opt, idx, colorIdx));
@@ -595,8 +614,8 @@
             el.className = `macaron-btn color-${colorIdx} px-8 py-3 rounded-2xl shadow-md font-bold text-gray-700 border-2 border-white/50 text-2xl whitespace-nowrap z-10`;
             el.innerText = text; el.id = `opt-${currentIdx}-${idSuffix}-${Math.random().toString(36).substr(2, 5)}`;
             el.draggable = true; el.dataset.value = text;
-            el.ondragstart = (e) => { e.dataTransfer.setData("text/plain", el.id); el.style.opacity = "0.5"; };
-            el.ondragend = () => el.style.opacity = "1";
+            el.ondragstart = (e) => { e.dataTransfer.setData("text/plain", el.id); e.target.style.opacity = "0.5"; };
+            el.ondragend = (e) => { e.target.style.opacity = "1"; };
             return el;
         }
 
@@ -688,27 +707,6 @@
             document.querySelectorAll('.progress-circle').forEach(circle => { if (quizPassedStatus[parseInt(circle.dataset.idx)]) circle.classList.add('passed'); });
         }
 
-        function useFirstAid(aidElement) {
-            // 指令：第一題應生效
-            if (firstAidCount <= 0 || aidElement.style.opacity === "0.2") return;
-
-            // 實作題使用急救包的視覺提示（僅展示效果，因實作題無標準答案配對）
-            if (currentIdx === 0) {
-                showToast("✨ 急救包已啟動！請確認四張截圖皆已正確貼上。", "success");
-            }
-
-            aidElement.style.opacity = "0.2"; 
-            aidElement.style.pointerEvents = "none";
-            firstAidCount--;
-            
-            document.querySelectorAll('.slot').forEach(slot => { 
-                const item = slot.querySelector('.macaron-btn'); 
-                if (item?.dataset.value === slot.dataset.answer) slot.classList.add('correct-hint'); 
-                else slot.classList.add('error-hint'); 
-                setTimeout(() => slot.classList.remove('correct-hint', 'error-hint'), 2000); 
-            });
-        }
-
         function showToast(msg, type) {
             const toast = document.getElementById('toast'); toast.innerText = msg;
             toast.className = `fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-white font-bold transition-all z-[600] text-xl shadow-lg ${type === 'success' ? 'bg-green-500' : 'bg-gray-800'}`;
@@ -719,11 +717,7 @@
             document.getElementById('result-overlay').classList.add('hidden');
             for (let i = 1; i < quizData.length; i++) { delete userStates[i]; delete quizCheckedStatus[i]; delete quizPassedStatus[i]; }
             
-            firstAidCount = 2;
-            const aidKit = document.getElementById('aid-kit');
-            aidKit.classList.remove('aid-kit-disabled');
-            aidKit.classList.add('aid-kit-enabled');
-            document.querySelectorAll('.first-aid').forEach(aid => { aid.style.opacity = "1"; aid.style.pointerEvents = "auto"; aid.style.cursor = "pointer"; });
+            quizAttemptCount++; 
 
             totalAttempts = 0; isTimerStarted = false;
             if (timerInterval) clearInterval(timerInterval);
@@ -751,8 +745,21 @@
             let correctCount = 0; quizData.forEach((_, idx) => { if (quizPassedStatus[idx]) correctCount++; });
             const randomQuote = inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)];
             document.getElementById('quote-zh').innerText = randomQuote.zh; document.getElementById('quote-en').innerText = randomQuote.en;
+            
             const stats = document.getElementById('final-stats');
-            stats.innerHTML = `<div class="grid grid-cols-2 gap-6"><div class="bg-pink-50 p-6 rounded-2xl text-center border border-pink-100 shadow-sm"><p class="text-lg text-pink-400 font-bold uppercase tracking-tight">總題數</p><p class="text-4xl font-black text-pink-600">${quizData.length}</p></div><div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100 shadow-sm"><p class="text-lg text-green-400 font-bold uppercase tracking-tight">答對題數</p><p class="text-4xl font-black text-green-600">${correctCount}</p></div></div><div class="text-center p-6 bg-white/50 rounded-2xl"><p class="text-2xl font-bold text-gray-700 mb-3 text-balance">挑戰完成！</p><p class="text-lg text-gray-500">測驗總用時：<span class="text-indigo-500 font-bold">${timerText}</span> | 檢查次數：<span class="text-indigo-500 font-bold">${totalAttempts}</span></p></div>`;
+            stats.innerHTML = `
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-pink-50 p-6 rounded-2xl text-center border border-pink-100 shadow-sm"><p class="text-lg text-pink-400 font-bold uppercase tracking-tight">總題數</p><p class="text-4xl font-black text-pink-600">${quizData.length}</p></div>
+                    <div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100 shadow-sm"><p class="text-lg text-green-400 font-bold uppercase tracking-tight">答對題數</p><p class="text-4xl font-black text-green-600">${correctCount}</p></div>
+                </div>
+                <div class="text-center p-6 bg-white/50 rounded-2xl">
+                    <p class="text-2xl font-bold text-gray-700 mb-3 text-balance">挑戰完成！</p>
+                    <p class="text-lg text-gray-500">
+                        作答次數：<span class="text-indigo-500 font-bold">${quizAttemptCount}</span> | 
+                        測驗總用時：<span class="text-indigo-500 font-bold">${timerText}</span> | 
+                        檢查次數：<span class="text-indigo-500 font-bold">${totalAttempts}</span>
+                    </p>
+                </div>`;
             document.getElementById('result-overlay').classList.remove('hidden');
         }
     </script>
